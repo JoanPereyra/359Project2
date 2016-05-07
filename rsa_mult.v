@@ -23,7 +23,8 @@ module rsa_mult(
 	input rst,
 	input [127:0] a,
 	input [127:0] b,
-	output [255:0] c_mult
+	output [255:0] c_mult,
+	output done
     );
 
 	reg [127:0] multiplicand;
@@ -39,13 +40,14 @@ module rsa_mult(
 						 
 	reg [1:0] state;
 	assign c_mult = P[255:0];
+	assign done = state[1] & state[0];	// END
 	
 	bit_adder_2n #(128) Adder(.a(P[255:128]), .b(partial_prod), .c(1'b0), .sum(sum_out), .carry_out(carry));
 		
 	always @(posedge clk) begin
 		if (rst) begin 
 			state = IDLE;
-			counter = 0;
+			counter <= 0;
 		end else begin
 			case(state) 
 				IDLE:
@@ -98,6 +100,7 @@ module rsa_mult(
 					end
 				END:
 					begin
+						state = END;
 					end
 			
 			endcase
