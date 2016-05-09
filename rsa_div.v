@@ -34,7 +34,8 @@ module rsa_div(
 							SHIFT = 3'b001,
 							ACCUM = 3'b010,
 							FIX_REMAINDER = 3'b011,
-							DONE = 3'b100;
+							DONE = 3'b100,
+							SPECIAL = 3'b101;
 							
 							
 	reg [2:0] state;
@@ -74,11 +75,17 @@ module rsa_div(
 		
 			case (state)
 				START: 			begin
-									q_shift = dividend_q;
-									a_shift = 129'h000000000000000000000000000000000;
-									add_sub_control = 1;
-									count = 8'h00;
-									state <= SHIFT;
+//									$display("dividend: %d", dividend_q);
+//									$display("divisor: %d", divisor_m);
+//									if(dividend_q > divisor_m) begin
+										q_shift = dividend_q;
+										a_shift = 129'h000000000000000000000000000000000;
+										add_sub_control = 1;
+										count = 8'h00;
+										state <= SHIFT;
+//									end
+//									else
+//										state = SPECIAL;
 									end
 							
 				SHIFT: 			begin
@@ -103,7 +110,7 @@ module rsa_div(
 									end
 				
 				FIX_REMAINDER:	begin
-									if (a_shift[8])
+									if (a_shift[128])
 										begin
 										add_sub_control = 0;
 										a_shift = add_sub_out[128:0];
@@ -114,6 +121,11 @@ module rsa_div(
 										state <= DONE;
 										end
 									end
+//				SPECIAL:			begin
+//										q_shift <= 0;
+//										a_shift <= dividend_q;
+//										state <= DONE;
+//									end
 				
 				DONE:				begin
 									state <= DONE;

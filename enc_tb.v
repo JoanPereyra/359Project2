@@ -64,11 +64,13 @@ module enc_tb;
 		
 		start = 1;
 		message = 920;
-		e_key = 33;
+		e_key = 5'b10001;		//17;
 		n = 2773;
 		
 		#20;
 		reset = 0;
+		
+		// Answer should be 948
         
 		// Add stimulus here
 

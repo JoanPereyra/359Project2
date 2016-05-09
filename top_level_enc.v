@@ -72,8 +72,6 @@ module top_level_enc(
 		.done(div_done));
 	
 	always @(posedge clk) begin
-		//$display("Product: %d", prod);
-		$display("e: %b", e == e_key);
 		if (reset) begin 
 			e = e_key;
 			state = IDLE;
@@ -124,13 +122,20 @@ module top_level_enc(
 				
 				WAIT_MULT: begin						// Wait for multiplier to finish
 					if(mult_rst) mult_rst = 0;
-					if(mult_done) state = DIVIDE;
+					if(mult_done) begin 
+						state = DIVIDE; 
+						$display("Product: %d", prod); 
+					end
 					else state = WAIT_MULT;
 				end
 				
 				WAIT_DIV: begin						// Wait for divider to finish
 					if(!div_rst) div_rst = 1;
-					if(div_done) state = CIPHER;
+					if(div_done) begin 
+						state = CIPHER; 
+						$display("Quotient: %d", quot); 
+						$display("Remainder: %d", remainder); 
+					end
 					else state = WAIT_DIV;
 				end
 				
