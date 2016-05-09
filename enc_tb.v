@@ -64,11 +64,13 @@ module enc_tb;
 		
 		start = 1;
 		message = 920;
-		e_key = 5'b10001;		//17;
+		e_key = {123'b0,5'b10001};		//17;
 		n = 2773;
 		
 		#20;
 		reset = 0;
+		
+		if(done) $finish;
 		
 		// Answer should be 948
         

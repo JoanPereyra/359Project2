@@ -54,13 +54,21 @@ module top_level_enc(
 	reg [2:0] state;
 	
 	//128-bit sequential multiplier completes in 128 clock cycles
-	rsa_mult muliply(
+//	rsa_mult muliply(
+//		.clk(clk),
+//		.rst(mult_rst),
+//		.done(mult_done),
+//		.a(mult_a),
+//		.b(mult_b),
+//		.c_mult(prod));
+
+	SequentialMultiplier128Bit multiply(
 		.clk(clk),
-		.rst(mult_rst),
+		.reset_n(mult_rst),
 		.done(mult_done),
 		.a(mult_a),
 		.b(mult_b),
-		.c_mult(prod));
+		.p(prod));
 	//128 sequential divider completes in 128 clock cycles	
 	rsa_div divide(
 		.clk(clk),
@@ -89,7 +97,7 @@ module top_level_enc(
 				SQUARE: begin			// e = 0
 					mult_a = cipher;
 					mult_b = cipher;
-					mult_rst = 1;
+					mult_rst = 0;
 					state = WAIT_MULT;
 				end
 				
@@ -98,7 +106,7 @@ module top_level_enc(
 					else begin
 						mult_a = cipher;
 						mult_b = message;
-						mult_rst = 1;
+						mult_rst = 0;
 						state = WAIT_MULT;
 					end
 				end
@@ -106,11 +114,13 @@ module top_level_enc(
 				CIPHER: begin
 					cipher = remainder;
 					counter = counter + 1;
-					e = e >> 1;
+					
 					if (e[0]) state = EI_1;
 					else state = SQUARE;
+					e = e >> 1;
+					if (counter == 128) state = END;
 					
-					if (counter == e_key) state = END;
+					// Write to separate register when e[0] == 1
 				end
 				
 				DIVIDE: begin
@@ -121,7 +131,7 @@ module top_level_enc(
 				end
 				
 				WAIT_MULT: begin						// Wait for multiplier to finish
-					if(mult_rst) mult_rst = 0;
+					if(!mult_rst) mult_rst = 1;
 					if(mult_done) begin 
 						state = DIVIDE; 
 						$display("Product: %d", prod); 
