@@ -57,7 +57,7 @@ module computation_master(
 		end else begin
 			run_module <= 3'd0;
 		end
-		
+		 
 		
 		if(done) begin
 			if(done[0]) begin // Addition

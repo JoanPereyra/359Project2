@@ -101,15 +101,14 @@ always @(posedge sys_clk) begin
 					end else if(rx_bitcount == 4'd9) begin
 						rx_busy <= 1'b0;
 						if(uart_rx2) begin // stop bit ok
-							//if(rx_total_octets == 4'd0) begin // OP code
-							//	rx_data <= {64'd0, rx_reg[1:0]};
-							//	rx_total_octets <= rx_total_octets + 4'd1;
-							//end else if (rx_total_octets < 4'd8) begin
-							if (rx_total_octets < 5'd16) begin
-								rx_data <= {rx_data[120:0], rx_reg};
+							if(rx_total_octets == 4'd0) begin 
+								rx_data <= {120'd0, rx_reg};
+								rx_total_octets <= rx_total_octets + 4'd1;
+							end else if (rx_total_octets < 5'd15) begin
+								rx_data <= {rx_data[119:0], rx_reg};
 								rx_total_octets <= rx_total_octets + 4'd1;
 							end else begin
-								rx_data <= {rx_data[120:0], rx_reg};
+								rx_data <= {rx_data[119:0], rx_reg};
 								rx_done <= 1'b1;
 								rx_busy <= 1'b0;
 								rx_total_octets <= 4'd0;

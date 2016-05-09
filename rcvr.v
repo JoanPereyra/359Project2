@@ -27,7 +27,7 @@ module rcvr(
     );
 	 
 	 reg [3:0] counter16;
-	 reg [6:0] bit_count;
+	 reg [8:0] bit_count;
 	 reg recieving;
 	 reg [128:0] data_buf;
 	 reg odd;
@@ -59,14 +59,14 @@ module rcvr(
 				end
 			end
 			else if (counter16 == 4'b0000) begin
-				bit_count <= bit_count+7'd1;
+				bit_count <= bit_count+9'd1;
 				
-				if (bit_count == 7'd0) begin // Is it really start?
+				if (bit_count == 9'd0) begin // Is it really start?
 					if (rx2) begin // RX went high again too fast. Not start
 						recieving <= 1'b0;
 					end
 				end
-				if (bit_count == 7'd130) begin // End bit
+				if (bit_count == 9'd130) begin // End bit
 					recieving <= 1'b0;
 					if(rx2) begin // End bit found
 						if(odd) begin

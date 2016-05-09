@@ -48,7 +48,7 @@ module echo(
 		end else if (running) begin
 			clock128 <= clock128 + 7'd1;
 			if (clock128 == 7'd127) begin
-				if (select_save) out <= {float1,float2};
+				if (select_save) out <= {float2,float1};
 				else out <= {float2,float1};
 				done <= 1'b1;
 				running <= 1'b0;

@@ -30,7 +30,7 @@ module xmit(
 	reg [127:0] fifo [15:0];
 	reg [3:0] rx_pointer;
 	reg [3:0] tx_pointer;
-	reg [6:0] bits_sent;
+	reg [8:0] bits_sent;
 	reg [3:0] counter16;
 	reg [2:0] count8;
 	
