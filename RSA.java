@@ -29,7 +29,6 @@
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-    
 
 public class RSA {
    private final static BigInteger ONE      = new BigInteger("1");
@@ -75,17 +74,17 @@ public class RSA {
       // create message by converting string to integer
       BigInteger message;
       if(args.length > 1) {
-            String s = args[1];
-            byte[] bytes = s.getBytes();
-            message = new BigInteger(bytes);
+        String s = args[1];
+        byte[] bytes = s.getBytes();
+        message = new BigInteger(bytes);
       }
       else
-            message = new BigInteger(N-1, RANDOM);
+        message = new BigInteger(N-1, RANDOM);
       
-        BigInteger encrypt = key.encrypt(message);
-        BigInteger decrypt = key.decrypt(encrypt);
-        System.out.println("message   = " + message);
-        System.out.println("encrypted = " + encrypt);
-        System.out.println("decrypted = " + decrypt);
+      BigInteger encrypt = key.encrypt(message);
+      BigInteger decrypt = key.decrypt(encrypt);
+      System.out.println("message   = " + message);
+      System.out.println("encrypted = " + encrypt);
+      System.out.println("decrypted = " + decrypt);
    }
 }
