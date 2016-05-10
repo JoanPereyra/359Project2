@@ -29,6 +29,7 @@
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+    
 
 public class RSA {
    private final static BigInteger ONE      = new BigInteger("1");
@@ -39,14 +40,24 @@ public class RSA {
    private BigInteger modulus;
 
    // generate an N-bit (roughly) public and private key
-   RSA(int N) {
-      BigInteger p = BigInteger.probablePrime(N/2, RANDOM);
-      BigInteger q = BigInteger.probablePrime(N/2, RANDOM);
-      BigInteger phi = (p.subtract(ONE)).multiply(q.subtract(ONE));
+   RSA(int N, String e) {
+      boolean tryAgain;
+      do {
+        BigInteger p = BigInteger.probablePrime(N/2, RANDOM);
+        BigInteger q = BigInteger.probablePrime(N/2, RANDOM);
+        BigInteger phi = (p.subtract(ONE)).multiply(q.subtract(ONE));
 
-      modulus    = p.multiply(q);               // n                   
-      publicKey  = new BigInteger("65537");     // e = 3 or 65537
-      privateKey = publicKey.modInverse(phi);   // d
+        modulus    = p.multiply(q);               // n                   
+        publicKey  = new BigInteger(e);     // e = 3 or 65537
+        
+        try {
+            privateKey = publicKey.modInverse(phi);   // d
+            tryAgain = false;
+        } catch (ArithmeticException exception) {
+            tryAgain = true;
+        }
+      } while(tryAgain);
+      
    }
    
    BigInteger encrypt(BigInteger message) {
@@ -60,21 +71,26 @@ public class RSA {
    @Override
    public String toString() {
       String s = "";
-      s += "public  = " + publicKey  + "\n";
-      s += "private = " + privateKey + "\n";
-      s += "modulus = " + modulus;
+      s += "public    = " + publicKey  + "\n";
+      s += "private   = " + privateKey + "\n";
+      s += "modulus   = " + modulus;
       return s;
    }
  
    public static void main(String[] args) {
+      if(args.length < 2) {
+          System.err.println("Missing parameters\nUsage: java RSA [Key length] [e] [optional message]");
+          System.exit(1);
+      }
+      
       int N = Integer.parseInt(args[0]);
-      RSA key = new RSA(N);
+      RSA key = new RSA(N,args[1]);
       System.out.println(key);
  
       // create message by converting string to integer
       BigInteger message;
-      if(args.length > 1) {
-        String s = args[1];
+      if(args.length > 2) {
+        String s = args[2];
         byte[] bytes = s.getBytes();
         message = new BigInteger(bytes);
       }
