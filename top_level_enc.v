@@ -42,16 +42,20 @@ module top_level_enc(
 	
 	assign c = cipher;
 	
-	parameter [2:0] IDLE 	 = 0,
-						 SQUARE	 = 1,
-						 EI_1 	 = 2,
-						 CIPHER	 = 3,
-						 DIVIDE	 = 4,
-						 WAIT_MULT= 5,
-						 WAIT_DIV = 6,
-						 END		 = 7;
+	parameter [3:0] IDLE 	 		= 0,
+						 DIV_SQ			= 1,
+						 DIV_E			= 2,
+						 C_SQ				= 3,
+						 C_M				= 4,
+						 WAIT_MULT_E	= 5,
+						 WAIT_MULT_SQ	= 6,
+						 WAIT_DIV_E		= 7,
+						 WAIT_DIV_SQ	= 8,
+						 SET_REM_E		= 9,
+						 SET_REM_SQ		= 10,
+						 END		 		= 11;
 						 
-	reg [2:0] state;
+	reg [3:0] state;
 	
 	//128-bit sequential multiplier completes in 128 clock cycles
 //	rsa_mult muliply(
@@ -90,63 +94,95 @@ module top_level_enc(
 				IDLE: begin
 					cipher = 1'b1;
 					counter = 0;
-					if (e[0] == 1) state = EI_1;
-					else state = SQUARE;
+					if(start) begin
+						mult_a = cipher;
+						mult_b = cipher;
+						mult_rst = 0;
+						state = WAIT_MULT_SQ;
+					end
 				end
 				
-				SQUARE: begin			// e = 0
+				C_SQ: begin			// e = 0
 					mult_a = cipher;
 					mult_b = cipher;
 					mult_rst = 0;
-					state = WAIT_MULT;
+					state = WAIT_MULT_SQ;
 				end
 				
-				EI_1: begin				// e = 1
-					if (counter == e_key) state = END;
+				C_M: begin
+					mult_a = cipher;
+					mult_b = message;
+					mult_rst = 0;
+					state = WAIT_MULT_E;
+				end
+				
+				SET_REM_SQ: begin
+					cipher = remainder;
+					if(e[127]) state = C_M;
+					else state = SET_REM_E;
+				end
+				
+				SET_REM_E: begin
+					cipher = remainder;
+					if (counter == 127) state = END;
 					else begin
-						mult_a = cipher;
-						mult_b = message;
-						mult_rst = 0;
-						state = WAIT_MULT;
+						e = e << 1;
+						$display("e: %b", e);
+						counter = counter + 1;
+						state = C_SQ;
 					end
 				end
 				
-				CIPHER: begin
-					cipher = remainder;
-					counter = counter + 1;
-					
-					if (e[0]) state = EI_1;
-					else state = SQUARE;
-					e = e >> 1;
-					if (counter == 128) state = END;
-					
-					// Write to separate register when e[0] == 1
-				end
-				
-				DIVIDE: begin
+				DIV_SQ: begin
 					div_a = prod;
 					div_b = n;
 					div_rst = 0;
-					state = WAIT_DIV;
+					state = WAIT_DIV_SQ;
 				end
 				
-				WAIT_MULT: begin						// Wait for multiplier to finish
+				DIV_E: begin
+					div_a = prod;
+					div_b = n;
+					div_rst = 0;
+					state = WAIT_DIV_E;
+				end
+				
+				WAIT_MULT_E: begin						// Wait for multiplier to finish
 					if(!mult_rst) mult_rst = 1;
 					if(mult_done) begin 
-						state = DIVIDE; 
+						state = DIV_E; 
 						$display("Product: %d", prod); 
 					end
-					else state = WAIT_MULT;
+					else state = WAIT_MULT_E;
 				end
 				
-				WAIT_DIV: begin						// Wait for divider to finish
+				WAIT_MULT_SQ: begin						// Wait for multiplier to finish
+					if(!mult_rst) mult_rst = 1;
+					if(mult_done) begin 
+						state = DIV_SQ; 
+						$display("Product: %d", prod); 
+					end
+					else state = WAIT_MULT_SQ;
+				end
+				
+				WAIT_DIV_SQ: begin						// Wait for divider to finish
 					if(!div_rst) div_rst = 1;
 					if(div_done) begin 
-						state = CIPHER; 
+						state = SET_REM_SQ; 
 						$display("Quotient: %d", quot); 
 						$display("Remainder: %d", remainder); 
 					end
-					else state = WAIT_DIV;
+					else state = WAIT_DIV_SQ;
+				end
+				
+				WAIT_DIV_E: begin						// Wait for divider to finish
+					if(!div_rst) div_rst = 1;
+					if(div_done) begin 
+						state = SET_REM_E; 
+						$display("Quotient: %d", quot); 
+						$display("Remainder: %d", remainder); 
+					end
+					else state = WAIT_DIV_E;
 				end
 				
 				END		: begin

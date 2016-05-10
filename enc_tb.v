@@ -48,6 +48,17 @@ module enc_tb;
 		.done(done)
 	);
 	
+//	encrypt_try uut (
+//		.clock(clk), 
+//		.reset(reset), 
+//		.start(start), 
+//		.message(message), 
+//		.key(e_key), 
+//		.n(n), 
+//		.message_enc(c), 
+//		.done(done)
+//	);
+	
 	always #10 clk = ~clk;
 
 	initial begin
@@ -63,9 +74,15 @@ module enc_tb;
 		#100;
 		
 		start = 1;
-		message = 920;
-		e_key = {123'b0,5'b10001};		//17;
 		n = 2773;
+		
+		// Encryption
+//		message = 920;
+//		e_key = 17;
+		
+		// Decryption
+		message = 948;
+		e_key = 157;
 		
 		#20;
 		reset = 0;

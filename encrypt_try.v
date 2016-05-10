@@ -42,7 +42,7 @@ module encrypt_try(
 		.a(mult_a),
 		.b(mult_b),
 		.clk(clock),
-		.reset(mult_start),
+		.reset_n(mult_start),
 		.p(mult_prod),
 		.done(mult_done)
 		);
@@ -51,11 +51,13 @@ module encrypt_try(
 		.dividend_q(dividend),
 		.divisor_m(divisor),
 		.clk(clock),
-		.reset(div_start),
+		.reset_n(div_start),
 		.done(div_done),
 		.quotient(div_quot),
 		.remainder(div_remain)
 		);
+		
+		
 		
 	parameter [2:0] 	IDLE = 3'd0, 
 							C_SQ = 3'd1,
@@ -137,7 +139,7 @@ module encrypt_try(
 									key_shift = key_shift << 1;
 									counter = counter + 1;
 									mult_a = c;
-									mult_b = b;
+									mult_b = c;
 									mult_start = 1'b1;
 									state = C_SQ;
 								end
