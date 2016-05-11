@@ -33,16 +33,16 @@ module computation_master(
 	 input RECEIVED_IN
     );
 	 
-	//reg [1:0]op_code;
-	reg [63:0]param1;
-	reg [63:0]param2;
+	reg [63:0]param1;//dont need
+	reg [63:0]param2;//dont need
+	
 	reg tx_wr;
 	assign tx_wr_out = tx_wr;
 
-	reg [3:0]run_module;
-	wire [3:0]done;
+	reg [2:0]run_module; //[0] enc [1] send dec [2] echo
+	wire [2:0]done;
 	
-	wire [127:0]outputs[3:0];
+	wire [127:0]outputs[2:0];
 
 	always @(posedge clock) begin
 		if (reset) begin
@@ -60,17 +60,16 @@ module computation_master(
 		 
 		
 		if(done) begin
-			if(done[0]) begin // Addition
-				tx_data <= outputs[0];
+			if(done[0]) begin // Encryption
+				//tx_data <= outputs[1];
+				run_module[1] <= 1'b1;
+				run_module[0] <= 1'b0;
 			end 
-			if(done[1]) begin // Subtraction
+			if(done[1]) begin // Decryption
 				tx_data <= outputs[1];
 			end
-			if(done[2]) begin // Multiplication
+			if(done[2]) begin //Echo
 				tx_data <= outputs[2];
-			end
-			if(done[3]) begin // Multiplication
-				tx_data <= outputs[3];
 			end
 			tx_wr <= 1'b1;
 		end else begin
@@ -80,14 +79,6 @@ module computation_master(
 		
 	end
 	
-	wire run_add_sub;
-	assign run_add_sub = run_module[0] | run_module[1];
-	wire add_sub_done;
-	wire [31:0] sum_sub_add;
-	assign done[0] = add_sub_done;
-	assign done[1] = add_sub_done;
-	assign outputs[0] = sum_sub_add;
-	assign outputs[1] = sum_sub_add;
 
 	//will be decode
 	transceiver64 multiplier_sender (
@@ -97,23 +88,23 @@ module computation_master(
     .UART_RX(UART_RX2),
     .reset(reset),
     .clock(clock),
-    .tx_wr(run_module[2]),
-    .rx_data({outputs[2]}),
-    .tx_data({param1, param2})
+    .tx_wr(run_module[1]),
+    .rx_data(outputs[1]),
+    .tx_data(outputs[0]) //takes in encryption c
    );
-	reg mult_out_buf;
-	reg mult_done_reg;
+	reg dec_out_buf;
+	reg dec_done_reg;
 	
 	always @(posedge clock) begin
-		mult_out_buf <= RECEIVED_OUT;
-		if (RECEIVED_OUT && ~mult_out_buf) begin
-			mult_done_reg <= 1'b1;
+		dec_out_buf <= RECEIVED_OUT;
+		if (RECEIVED_OUT && ~dec_out_buf) begin
+			dec_done_reg <= 1'b1;
 		end else begin
-			mult_done_reg <= 1'b0;
+			dec_done_reg <= 1'b0;
 		end
 	end
 		
-	assign done[2] = mult_done_reg;
+	assign done[1] = dec_done_reg;
 	
 	//Will be encode
 /*FP_Addition_pipeline adder(
@@ -127,15 +118,33 @@ module computation_master(
     .done(add_sub_done)
     ); */
 	 
+	 
+//to put java code
+wire [127:0] key;
+assign key = 17;
+wire [127:0] n; 
+assign n = 2773;
+
+top_level_enc encode(
+	.clk(clock),
+	.reset(reset),
+	.start(run_module[0]),
+	.message(rx_data),
+	.e_key(key),
+	.n(n),
+	.c(outputs[0]),
+	.done(done[0])
+    );
+	 
 	 echo echoer (
     .float1(param1), // first floating param
     .float2(param2), //second floating param
     .clock_50M(clock), // 50MHZ clock
     .reset(reset), // Reset
     .select(1'b1), // Debug don't use for real modules
-    .start(run_module[3]), // Input that will be high when operation is desired
-    .done(done[3]), // raise to high for at lease 1 clock tick when finished
-    .out(outputs[3]) // Final value (32-bits)
+    .start(run_module[2]), // Input that will be high when operation is desired
+    .done(done[2]), // raise to high for at lease 1 clock tick when finished
+    .out(outputs[2]) // Final value (32-bits)
     );
 
 

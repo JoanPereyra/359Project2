@@ -35,14 +35,14 @@ module multiplier_top(
 	reg recieved_out_buf;
 	wire [127:0] rx_data;
 	reg [127:0] tx_data;
-	wire [31:0] product;
+	wire [127:0] decrypt_out;
 	wire done;
 	
 
 	wire reset;
 	assign reset = ~dcm_locked;
 
-	always @(posedge clock_50M) begin
+/*	always @(posedge clock_50M) begin
 		recieved_out_buf <= RECEIVED_OUT;
 		if (RECEIVED_OUT) begin // Got a transmission
 			if (~recieved_out_buf) begin
@@ -56,11 +56,11 @@ module multiplier_top(
 		end else begin
 			tx_wr <= 1'b0;
 		end
-	end
+	end*/
 
 	reg start_bit;
 
-/*	always @(posedge clock_50M) begin
+	always @(posedge clock_50M) begin
 		recieved_out_buf <= RECEIVED_OUT;
 		if (RECEIVED_OUT) begin // Got a transmission
 			if (~recieved_out_buf) begin
@@ -75,22 +75,33 @@ module multiplier_top(
 		end
 		
 		if(done) begin
-			tx_data <= {30'd0, overflow, underflow, product} ;
+			tx_data <= decrypt_out;
 			tx_wr <= 1'b1;
 		end 
 		else 
 			tx_wr <= 1'b0;
 	end
-	*/
-//	multiplier Multiplier_inst (
-//	 .clock_50M(clock_50M), 
-//    .reset(resetIn), 
-//    .a(rx_data[63:32]), 
-//    .b(rx_data[31:0]),
-//    .start(start_bit), 
-//    .product(product), 
-//    .done(done),
-//    );
+	
+	
+	//to put java code
+	wire [127:0] key;
+	//set to d
+	assign key = 157;
+	wire [127:0] n; 
+	assign n = 2773;
+
+top_level_enc encode(
+	.clk(clock_50M),
+	.reset(resetIn),
+	.start(start_bit),
+	.message(rx_data),
+	.e_key(key),
+	.n(n),
+	.c(decrypt_out),
+	.done(done)
+    );
+	 
+
 /*	 wire overflow;
 	 wire underflow;
 	 
@@ -106,6 +117,8 @@ module multiplier_top(
     .clock(clock_50M)
     );
 */
+
+	
 	clock_gen01 MYclock_gen01 (
 	 .CLKIN_IN(CLK_IN), 
 	 .RST_IN(resetIn), 

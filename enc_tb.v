@@ -86,7 +86,7 @@ module enc_tb;
 		#1400000;	// Wait 1.4 ms
 		
 		// Reset for decryption
-		reset = 1;
+		//reset = 1;
 		#20;
 		
 		// Start Decryption

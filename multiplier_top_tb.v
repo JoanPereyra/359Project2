@@ -70,7 +70,8 @@ module multiplier_top_tb;
 		
 	initial begin
 	
-		in_val[0] = {128'hFF00FF00FF00FF00FF00FF00FF00FF00};
+		in_val[0] = {128'd920};
+		//in_val[0] = {128'hFF00FF00FF00FF00FF00FF00FF00FF00};
 		//in_val[1] = {128'hFF00FF00FF00FF00aa11bb11aa11bb11};
 	
 		// Initialize Inputs
@@ -85,7 +86,7 @@ module multiplier_top_tb;
         
 		// Add stimulus here
 		for (input_index = 0; input_index < 1; input_index = input_index +1) begin
-			for (octet_index = 0; octet_index < 16; octet_index = octet_index +1) begin
+			for (octet_index = 15; octet_index >= 0; octet_index = octet_index -1) begin
 				UART_RX = 1'b0; // Start bit
 				#4320;
 				for (bit_index = 0; bit_index < 8; bit_index =bit_index + 1) begin
