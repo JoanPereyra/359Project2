@@ -53,25 +53,28 @@ module computation_master(
 		if(rx_irq) begin
 			param1 <= rx_data[127:64];
 			param2 <= rx_data[63:0];
-			run_module[2] <= 1'b1;
+			run_module[0] <= 1'b1;
 		end else begin
 			run_module <= 3'd0;
 		end
 		 
-		
+		 
 		if(done) begin
 			if(done[0]) begin // Encryption
 				//tx_data <= outputs[1];
 				run_module[1] <= 1'b1;
 				run_module[0] <= 1'b0;
+				tx_wr <= 1'b0;
 			end 
 			if(done[1]) begin // Decryption
 				tx_data <= outputs[1];
+				tx_wr <= 1'b1;
 			end
 			if(done[2]) begin //Echo
 				tx_data <= outputs[2];
+				tx_wr <= 1'b1;
 			end
-			tx_wr <= 1'b1;
+			
 		end else begin
 			tx_wr <= 1'b0;
 		end
