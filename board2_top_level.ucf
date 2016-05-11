@@ -1,0 +1,15 @@
+NET "CLK_50M" LOC = B8;
+NET "UART_RX" LOC = U6;
+NET "UART_TX" LOC = P9;
+
+NET "resetIn" LOC = "B18"; # Bank = 1, Pin name = IP, Type = INPUT, Sch name = BTN0
+
+//NET "UART_RX2"  LOC = "B4";  # Bank = 0, Pin name = IO_L24N_0, Type = I/O, Sch name = R-IO1
+//NET "UART_TX2"  LOC = "A4";  # Bank = 0, Pin name = IO_L24P_0, Type = I/O, Sch name = R-IO2
+//NET "RECEIVED_OUT"  LOC = "C3";  # Bank = 0, Pin name = IO_L25P_0, Type = I/O, Sch name = R-IO3
+//NET "RECEIVED_IN"  LOC = "C4";  # Bank = 0, Pin name = IO, Type = I/O, Sch name = R-IO4
+
+NET "UART_TX2" LOC = "L15"; # Bank = 1, Pin name = IO_L09N_1/A11, Type = DUAL, Sch name = JA1
+NET "UART_RX2" LOC = "K12"; # Bank = 1, Pin name = IO_L11N_1/A9/RHCLK1, Type = RHCLK/DUAL, Sch name = JA2
+NET "RECEIVED_OUT" LOC = "L17"; # Bank = 1, Pin name = IO_L10N_1/VREF_1, Type = VREF, Sch name = JA3
+NET "RECEIVED_IN" LOC = "M15"; # Bank = 1, Pin name = IO_L07P_1, Type = I/O, Sch name = JA4
