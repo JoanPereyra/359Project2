@@ -82,112 +82,118 @@ module top_level_enc(
 		.quotient(quot),
 		.remainder(remainder),
 		.done(div_done));
+		
+		reg running;
 	
 	always @(posedge clk) begin
 		if (reset) begin 
-			e = e_key;
-			state = IDLE;
-			counter = 0;
-			cipher = 0;
+			e <= e_key;
+			state <= IDLE;
+			counter <= 0;
+			cipher <= 1'b1;
+			running <= 0;
+			done <= 0;
 		end else begin
 			case(state)
 				IDLE: begin
-					cipher = 1'b1;
-					counter = 0;
-					if(start) begin
-						mult_a = cipher;
-						mult_b = cipher;
-						mult_rst = 0;
-						state = WAIT_MULT_SQ;
-					end
+					if (start && ~running) begin
+						running <= 1;
+						done <= 0;
+						state <= C_SQ;
+					end 
 				end
 				
 				C_SQ: begin			// e = 0
-					mult_a = cipher;
-					mult_b = cipher;
-					mult_rst = 0;
-					state = WAIT_MULT_SQ;
+					mult_a <= cipher;
+					mult_b <= cipher;
+					mult_rst <= 0;
+					state <= WAIT_MULT_SQ;
 				end
 				
-				C_M: begin
-					mult_a = cipher;
-					mult_b = message;
-					mult_rst = 0;
-					state = WAIT_MULT_E;
+				C_M: begin			// e = 1
+					mult_a <= cipher;
+					mult_b <= message;
+					mult_rst <= 0;
+					state <= WAIT_MULT_E;
 				end
 				
 				SET_REM_SQ: begin
-					cipher = remainder;
-					if(e[127]) state = C_M;
-					else state = SET_REM_E;
+					cipher <= remainder;
+					if(e[127]) state <= C_M;
+					else state <= SET_REM_E;
 				end
 				
 				SET_REM_E: begin
-					cipher = remainder;
-					if (counter == 127) state = END;
+					cipher <= remainder;
+					if (counter == 127) state <= END;
 					else begin
-						e = e << 1;
-						$display("e: %b", e);
-						counter = counter + 1;
-						state = C_SQ;
+						e <= e << 1;
+//						$display("e: %b", e);
+						counter <= counter + 1;
+						state <= C_SQ;
 					end
 				end
 				
 				DIV_SQ: begin
-					div_a = prod;
-					div_b = n;
-					div_rst = 0;
-					state = WAIT_DIV_SQ;
+					div_a <= prod;
+					div_b <= n;
+					div_rst <= 0;
+					state <= WAIT_DIV_SQ;
 				end
 				
 				DIV_E: begin
-					div_a = prod;
-					div_b = n;
-					div_rst = 0;
-					state = WAIT_DIV_E;
+					div_a <= prod;
+					div_b <= n;
+					div_rst <= 0;
+					state <= WAIT_DIV_E;
 				end
 				
 				WAIT_MULT_E: begin						// Wait for multiplier to finish
-					if(!mult_rst) mult_rst = 1;
+					if(!mult_rst) mult_rst <= 1;
 					if(mult_done) begin 
-						state = DIV_E; 
-						$display("Product: %d", prod); 
+						state <= DIV_E; 
+//						$display("Product: %d", prod); 
 					end
-					else state = WAIT_MULT_E;
+					else state <= WAIT_MULT_E;
 				end
 				
 				WAIT_MULT_SQ: begin						// Wait for multiplier to finish
-					if(!mult_rst) mult_rst = 1;
+					if(!mult_rst) mult_rst <= 1;
 					if(mult_done) begin 
-						state = DIV_SQ; 
-						$display("Product: %d", prod); 
+						state <= DIV_SQ; 
+//						$display("Product: %d", prod); 
 					end
-					else state = WAIT_MULT_SQ;
+					else state <= WAIT_MULT_SQ;
 				end
 				
 				WAIT_DIV_SQ: begin						// Wait for divider to finish
-					if(!div_rst) div_rst = 1;
+					if(!div_rst) div_rst <= 1;
 					if(div_done) begin 
-						state = SET_REM_SQ; 
-						$display("Quotient: %d", quot); 
-						$display("Remainder: %d", remainder); 
+						state <= SET_REM_SQ; 
+//						$display("Quotient: %d", quot); 
+//						$display("Remainder: %d", remainder); 
 					end
-					else state = WAIT_DIV_SQ;
+					else state <= WAIT_DIV_SQ;
 				end
 				
 				WAIT_DIV_E: begin						// Wait for divider to finish
-					if(!div_rst) div_rst = 1;
+					if(!div_rst) div_rst <= 1;
 					if(div_done) begin 
-						state = SET_REM_E; 
-						$display("Quotient: %d", quot); 
-						$display("Remainder: %d", remainder); 
+						state <= SET_REM_E; 
+//						$display("Quotient: %d", quot); 
+//						$display("Remainder: %d", remainder); 
 					end
-					else state = WAIT_DIV_E;
+					else state <= WAIT_DIV_E;
 				end
 				
 				END		: begin
-					done = 1;
-					state = END;
+					if(running) begin
+						done <= 1;
+						running <= 0;
+					end else
+						done <= 0;
+						
+					state <= END;
 				end
 				
 			endcase

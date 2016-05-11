@@ -69,30 +69,41 @@ module enc_tb;
 		message = 0;
 		e_key = 0;
 		n = 0;
-
-		// Wait 100 ns for global reset to finish
-		#100;
+		#20;
 		
+		// Start Encryption
 		start = 1;
 		n = 2773;
 		
 		// Encryption
-//		message = 920;
-//		e_key = 17;
+		message = 920;
+		e_key = 17;
+		#20;
+		
+		reset = 0;
+		#20;
+		start = 0;
+		#1400000;	// Wait 1.4 ms
+		
+		// Reset for decryption
+		reset = 1;
+		#20;
+		
+		// Start Decryption
+		start = 1;
 		
 		// Decryption
 		message = 948;
 		e_key = 157;
-		
 		#20;
+		
 		reset = 0;
+		#20;
+		start = 0;
+		#1400000; 	// Wait 1.4 ms
 		
-		if(done) $finish;
+		$finish;
 		
-		// Answer should be 948
-        
-		// Add stimulus here
-
 	end
       
 endmodule
