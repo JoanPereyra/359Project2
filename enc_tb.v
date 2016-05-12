@@ -73,17 +73,17 @@ module enc_tb;
 		
 		// Start Encryption
 		start = 1;
-		n = 2773;
+		n = 128'hdfe37dc2fbfce3ac2042306c3a706fb1;
 		
 		// Encryption
-		message = 920;
-		e_key = 17;
+		message = 128'h50000000000000000000000000000000;
+		e_key = 128'd3;
 		#20;
 		
 		reset = 0;
 		#20;
 		start = 0;
-		#1400000;	// Wait 1.4 ms
+		#5000000;	// Wait 1.4 ms
 		
 		// Reset for decryption
 		//reset = 1;
@@ -93,14 +93,14 @@ module enc_tb;
 		start = 1;
 		
 		// Decryption
-		message = 948;
-		e_key = 157;
+		message = 128'h4be0fcf48d1b0681cecbfc292a9d2015;
+		e_key = 128'h954253d752a897c6d60f72df9a514ea3;
 		#20;
 		
 		reset = 0;
 		#20;
 		start = 0;
-		#1400000; 	// Wait 1.4 ms
+		#5000000; 	// Wait 1.4 ms
 		
 		$finish;
 		

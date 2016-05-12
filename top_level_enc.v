@@ -31,10 +31,11 @@ module top_level_enc(
 
 	reg  [127:0] counter;			//counter must go through 0-127 so use 7 bits (2^7 = 128)
 	reg  [127:0] mult_a, mult_b;	//inputs to multiplier
-	reg  [127:0] div_a, div_b;		//inputs to divider
+	reg  [127:0] div_b;
+	reg  [255:0] div_a;				//inputs to divider
 	wire [255:0] prod;				//multiplier output (note double length)
-	wire [127:0] quot;				//divider quotient output
-	wire [127:0] remainder;			//divider remainder output
+	wire [255:0] quot;				//divider quotient output
+	wire [255:0] remainder;			//divider remainder output
 	reg  [127:0] cipher;				//Current ciphered message
 	reg  [127:0] e;					//Encryption factor (usually 3)
 	wire	mult_done, div_done;		//Multiplier/Divider done
@@ -75,15 +76,24 @@ module top_level_enc(
 		.b(mult_b),
 		.p(prod));
 	//128 sequential divider completes in 128 clock cycles	
-	rsa_div divide(
+//	rsa_div divide(
+//		.clk(clk),
+//		.reset_n(div_rst),
+//		.dividend_q(div_a),
+//		.divisor_m(div_b),
+//		.quotient(quot),
+//		.remainder(remainder),
+//		.done(div_done));
+	
+	SequentialNonrestoringDivider256Bit divide(
 		.clk(clk),
 		.reset_n(div_rst),
 		.dividend_q(div_a),
-		.divisor_m(div_b),
+		.divisor_m({128'b0, div_b[127:0]}),
 		.quotient(quot),
 		.remainder(remainder),
 		.done(div_done));
-	
+
 	always @(posedge clk) begin
 		if (reset) begin 
 			e = e_key;
@@ -125,13 +135,13 @@ module top_level_enc(
 				end
 				
 				SET_REM_SQ: begin
-					cipher = remainder;
+					cipher = remainder[127:0];
 					if(e[127]) state = C_M;
 					else state = SET_REM_E;
 				end
 				
 				SET_REM_E: begin
-					cipher = remainder;
+					cipher = remainder[127:0];
 					if (counter == 127) state = END;
 					else begin
 						e = e << 1;
