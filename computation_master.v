@@ -39,10 +39,10 @@ module computation_master(
 	reg tx_wr;
 	assign tx_wr_out = tx_wr;
 
-	reg [2:0]run_module; //[0] enc [1] send dec [2] echo
-	wire [2:0]done;
+	reg [2:0]run_module; //[0] enc [1] send dec [2] decode [3]echo
+	wire [3:0]done; //3 to 2
 	
-	wire [127:0]outputs[2:0];
+	wire [127:0]outputs[3:0]; //3 to 2
 
 	always @(posedge clock) begin
 		if (reset) begin
@@ -66,15 +66,20 @@ module computation_master(
 				run_module[0] <= 1'b0;
 				tx_wr <= 1'b0;
 			end 
-			if(done[1]) begin // Decryption
-				tx_data <= outputs[1];
-				tx_wr <= 1'b1;
+			if(done[1]) begin // Decryption-send
+				run_module[2] <= 1'b1;
+				tx_wr <= 1'b0;
+				//tx_data <= outputs[1];
+				//tx_wr <= 1'b1;
 			end
 			if(done[2]) begin //Echo
 				tx_data <= outputs[2];
 				tx_wr <= 1'b1;
 			end
-			
+			if(done[3]) begin //Decode /////added
+				tx_data <= outputs[3];
+				tx_wr <= 1'b1;
+			end
 		end else begin
 			tx_wr <= 1'b0;
 		end
@@ -82,7 +87,8 @@ module computation_master(
 		
 	end
 	
-
+	assign outputs[2] = outputs[1]; //So encode input coming in can go to decode
+	
 	//will be decode
 	transceiver64 multiplier_sender (
     .UART_TX(UART_TX2),
@@ -108,38 +114,43 @@ module computation_master(
 	end
 		
 	assign done[1] = dec_done_reg;
-	
-	//Will be encode
-/*FP_Addition_pipeline adder(
-    .CLK_50M(clock), 
-    .reset(reset), 
-    .a(param1), 
-    .b(param2),
-	 .opcode(op_code), 
-    .start_bit(run_add_sub), 
-    .sum(sum_sub_add), 
-    .done(add_sub_done)
-    ); */
 	 
 	 
 //to put java code
-wire [127:0] key;
-assign key = 17;
+wire [127:0] e_key;
+assign e_key = 17;
 wire [127:0] n; 
 assign n = 2773;
+
+wire [127:0] d_key;
+//set to d
+assign d_key = 157;
 
 top_level_enc encode(
 	.clk(clock),
 	.reset(reset),
 	.start(run_module[0]),
 	.message(rx_data),
-	.e_key(key),
+	.e_key(e_key),
 	.n(n),
 	.c(outputs[0]),
 	.done(done[0])
     );
 	 
-	 echo echoer (
+//trying
+top_level_enc decode(
+	.clk(clock),
+	.reset(reset),
+	.start(run_module[2]),
+	.message(outputs[2]), //really outputs 1
+	.e_key(d_key), 
+	.n(n),
+	.c(outputs[3]),
+	.done(done[3])
+    );
+	 
+	 
+/*	 echo echoer (
     .float1(param1), // first floating param
     .float2(param2), //second floating param
     .clock_50M(clock), // 50MHZ clock
@@ -148,7 +159,7 @@ top_level_enc encode(
     .start(run_module[2]), // Input that will be high when operation is desired
     .done(done[2]), // raise to high for at lease 1 clock tick when finished
     .out(outputs[2]) // Final value (32-bits)
-    );
+    );*/
 
 
 endmodule
